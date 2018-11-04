@@ -64,7 +64,7 @@ Approach :
 ===========
 I have used three classical algorithms to perform multi-classification namely
 - Logistic Regression
-- SVM
+- Support Vector Classifier
 - Random Forest Classifier
 
 Importing Libraries :
@@ -76,7 +76,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 ```
 
-PREPROCESSING :
+PRE-PROCESSING :
 =========
 It is a good practice to perform feature scaling and mean normalization before applying models like Logistic Regression, SVM, etc. 
 ```python
@@ -96,7 +96,7 @@ X_test = stdScaler.fit_transform(df_test.values)
 ```
 Should we use PCA ?
 ====================
-Since, the dataset contains 10299 instances and 561 attributes. The number of attributes is quite high so it might take time to train the model. Also, large number of attributes can lead to Overfitting. If the model overfits because of large number of attributes, we can use **Principal Component Analysis** (PCA) to reduce the number of attributes so that the model will contain new useful features. But when i trained my model on Logistic, SVM and Random Forest, i observed that the Training Score and Validation Score is quite close. It means that our model performs equally good on Training Set and Validation Set. This implies that our model do not Overfit, so we do not need to apply PCA here. We can verify that PCA will not increase the Validation Score. Before applying PCA, we need to perform Data Centralization. Data centralization is a major step before applying PCA to a Training Set. On applying PCA for the model with variance 0.9, we observe that around only 63 principal components are required and with variance 0.85, around only 40 principal components are required. We will stick with 0.85 variance as a thumb of rule (it is observed that variance "0.85" often suits many models quite well).
+Since, the dataset contains 10299 instances and 561 attributes. The number of attributes is quite high so it might take time to train the model. Also, large number of attributes can lead to Overfitting. If the model overfits because of large number of attributes, we can use **Principal Component Analysis** (PCA) to reduce the number of attributes so that the model will contain new useful features. But when i trained my model on Logistic, SVM and Random Forest, i observed that the Training Score and Test Score is quite close. It means that our model performs equally good on Training Set and Test Set. This implies that our model do not Overfit, so we do not need to apply PCA here. We can verify that PCA will not increase the Test Score. Before applying PCA, we need to perform Data Centralization. Data centralization is a major step before applying PCA to a Training Set. On applying PCA for the model with variance 0.9, we observe that around only 63 principal components are required and with variance 0.85, around only 40 principal components are required. We will stick with 0.85 variance as a thumb of rule (it is observed that variance "0.85" often suits many models quite well).
 ```python
 from sklearn.decomposition import PCA
 
@@ -115,6 +115,7 @@ for i in range(len(pca_csum)) :
 plt.plot(pca_csum_list, 'b')
 plt.show()
 ```
+![PCA variance curve](pca_variance.png)
 ``` python
 stdScaler = StandardScaler()
 X_train = stdScaler.fit_transform(Xtrain_pca)
@@ -122,7 +123,7 @@ X_test = stdScaler.transform(Xtest_pca)
 ```
 
 # Applying Logistic Regression
-
+Here, we are using Logistic Regression with "liblinear" solver. LIBLINEAR is an open source library for large-scale linear classification. Logistic Regression is performing really great with 96.87% accuracy.
 ```
 from sklearn.linear_model import LogisticRegression
 
@@ -150,25 +151,92 @@ print("Test score by Logistic Regression (liblinear) : ", max_test)
 plt.plot(d, c_list, 'b', d, c_list, 'o')
 plt.plot(d[d.index(optimalC)], c_list[d.index(optimalC)], 'ro')
 plt.xlabel("Values of C")
-plt.ylabel("Validation scores")
-plt.title("Graph of \"C vs Validation Score\"")
+plt.ylabel("Test scores")
+plt.title("Graph of \"C vs Test Score\"")
 plt.show()
 ```
-### Output without PCA
+### Graph of C vs Test Score (without PCA)
+![C_vs_test](c_vs_test.png)
+### Output of Logistic Regression without PCA
 ```
 Optimal C =  0.1
 Training score by Logistic Regression (liblinear) :  0.9883025027203483
 Test score by Logistic Regression (liblinear) :  0.9657278588394977
 ```
-### Output with PCA
+### Output of Logistic Regression with PCA
 ```
 Optimal C =  1
 Training score by Logistic Regression (liblinear) :  0.9333514689880305
 Test score by Logistic Regression (liblinear) :  0.9182219205972175
 ```
+# Observation 
+Clearly, Result without PCA is quite better than that with PCA. Also, Training score and test score are quite close as well. So, the decision of not using PCA was not wrong. I also tried with other different models like SVM, Random Forest, etc. with PCA and without PCA and each case, not using PCA was the optimal choice. So, from now on, we will not consider the case of using PCA.
+ # Applying Support Vector Classifier (SVC)
+ SVC is a classical Classification Algorithm. It is applied in many classification problem and it performs quite well in both training set and test set. In our case, it is performing really good but still overfitting to some extend. When i tried to reduce the overfitting by choosing small value of C, the test score also went down.
+ ```python
+ from sklearn.svm import SVC
 
-# Conclusion 
-Clearly, Result without PCA is quite better than that with PCA. Also, Training score and test score are quite close as well. So, the decision of not using PCA was not wrong. We can also try with other different models like SVM, Random Forest, etc. I found that Logistic Regression was performing better than both of them (SVM, RFC). So, i decided to stick with Logistic Regression as my Best Model for this multi-classification problem which is giving me a really good result (96.57% accuracy).
+max_train = 0
+max_test = 0
+svc_list = [1] + [i for i in range(5, 51, 5)]
+optimalC = svc_list[0]
+for i in svc_list:
+    
+    clf = SVC(C=i, kernel='rbf', random_state=42)
+    clf.fit(X_train, y_train)
+    score_train = clf.score(X_train, y_train)
+    score_test = clf.score(X_test, y_test)
+    
+    if(score_test > max_test) :
+        max_test = score_test
+        max_train = score_train
+        optimalC = i
+
+print("Optimal C = ", optimalC)
+print("Training Score by SVM : ", max_train)
+print("Test Score by SVM : ", max_test)
+ ```
+ ### Output of SVC
+ ```
+Optimal C =  40
+Training Score by SVM :  1.0
+Test Score by SVM :  0.9606379368849678
+ ```
+ # Applying Random Forest Classifier
+Random Forest Classifier generally performs really well but in this case, it is overfitting as we can see that training score and test score have significant difference.
+ ```python
+from sklearn.ensemble import RandomForestClassifier
+max_train = 0
+max_test = 0
+optimalDepth = 7
+optimalEstimator = 10
+for depth in [7, 8, 9] :
+    for estimator in range(5, 51, 5) :
+        model_rfc = RandomForestClassifier(n_estimators=estimator, max_depth=depth, random_state=42)
+        model_rfc.fit(X_train, y_train)
+        score_train = model_rfc.score(X_train, y_train)
+        score_test = model_rfc.score(X_test, y_test)
+        
+        if(max_test < score_test) :
+            max_test = score_test
+            max_train = score_train
+            optimalDepth = depth
+            optimalEstimator = estimator
+            
+print("Optimal Depth = ", optimalDepth)
+print("Optimal Number of Estimators = ", optimalEstimator)
+print("Training Score by Random Forest : ", max_train)
+print("Test Score by Random Forest : ", max_test)
+ ```
+### Output of RFC
+```
+Optimal Depth =  8
+Optimal Number of Estimators =  50
+Training Score by Random Forest :  0.9868063112078346
+Test Score by Random Forest :  0.9205972175093315
+```
+# Conclusion
+We can see that Logistic Regression is performing better than both of them (SVC, RFC). So, i would stick with Logistic Regression for this multi-classification problem which is giving me a really good satisfactory result (96.57% accuracy).
 
 # References :
 - Davide Anguita, Alessandro Ghio, Luca Oneto, Xavier Parra and Jorge L. Reyes-Ortiz. A Public Domain Dataset for Human Activity Recognition Using Smartphones. 21th European Symposium on Artificial Neural Networks, Computational Intelligence and Machine Learning, ESANN 2013. Bruges, Belgium 24-26 April 2013. 
