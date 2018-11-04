@@ -78,11 +78,43 @@ from sklearn.preprocessing import StandardScaler
 
 PREPROCESSING :
 =========
-Since, the dataset contains 10299 instances and 561 attributes. The number of attributes is quite high so it might take time to train the model. So, we can reduce the number of attributes by applying **Principal Component Analysis** (PCA). Before applying PCA, we need to perform Data Centralization. Data centralization is a major step before applying PCA to a Training Set. On applying PCA for the model with variance 0.9, we observe that only 63 principal components are required. It indicates that most of the features in our training set are highly correlated and redundant. Also, having high number of unnecessary features in the data set might lead to Overfitting. So, this 
+It is a good practice to perform feature scaling and mean normalization before applying models like Logistic Regression, SVM, etc. 
 ```python
+df_train = pd.read_csv('train/X_train.txt', delim_whitespace=True, header=None)
+df_test = pd.read_csv('test/X_test.txt', delim_whitespace=True, header=None)
+
+combine = pd.concat([df_train, df_test])
+
+y_train = np.array(pd.read_csv('train/y_train.txt', header=None)).ravel()
+y_test = np.array(pd.read_csv('test/y_test.txt', header=None)).ravel()
+df_train.shape, df_test.shape, combine.shape
+
+stdScaler = StandardScaler()
+X = stdScaler.fit_transform(combine.values)
+X_train = stdScaler.fit_transform(df_train.values)
+X_test = stdScaler.fit_transform(df_test.values)
+```
+Should we use PCA ?
+====================
+Since, the dataset contains 10299 instances and 561 attributes. The number of attributes is quite high so it might take time to train the model. Also, large number of attributes can lead to Overfitting. If the model overfits because of large number of attributes, we can use **Principal Component Analysis** (PCA) to reduce the number of attributes so that the model will contain new useful features. But when i trained my model on Logistic, SVM and Random Forest, i observed that the Training Score and Validation Score is quite close. It means that our model performs equally good on Training Set and Validation Set. This implies that our model do not Overfit, so we do not need to apply PCA here. We can verify that PCA will not increase the Validation Score. Before applying PCA, we need to perform Data Centralization. Data centralization is a major step before applying PCA to a Training Set. On applying PCA for the model with variance 0.9, we observe that around only 63 principal components are required and with variance 0.85, around only 40 principal components are required. We will stick with 0.85 variance as a thumb of rule (it is often observed that variance 0.85 suits many models quite well).
+```python
+from sklearn.decomposition import PCA
+
+pca = PCA(n_components=0.85, random_state=42) 
+pca = pca.fit(X_train)
+Xtrain_pca = pca.transform(X_train)
+Xtest_pca = pca.transform(X_test)
 
 ```
-
+```python
+pca_csum = pca.explained_variance_ratio_.cumsum()
+display(pca_csum)
+pca_csum_list = []
+for i in range(len(pca_csum)) :
+    pca_csum_list.append(pca_csum[i])
+plt.plot(pca_csum_list, 'b')
+plt.show()
+```
 # References :
 - Davide Anguita, Alessandro Ghio, Luca Oneto, Xavier Parra and Jorge L. Reyes-Ortiz. A Public Domain Dataset for Human Activity Recognition Using Smartphones. 21th European Symposium on Artificial Neural Networks, Computational Intelligence and Machine Learning, ESANN 2013. Bruges, Belgium 24-26 April 2013. 
 - https://github.com/guillaume-chevalier/LSTM-Human-Activity-Recognition
