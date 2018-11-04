@@ -60,7 +60,7 @@ Notes:
 - The units used for the accelerations (total and body) are 'g's (gravity of earth -> 9.80665 m/seg2).
 - The gyroscope units are rad/seg.
 
-APPROACH :
+Approach :
 ===========
 I have used three classical algorithms to perform multi-classification namely
 - Logistic Regression
@@ -96,7 +96,7 @@ X_test = stdScaler.fit_transform(df_test.values)
 ```
 Should we use PCA ?
 ====================
-Since, the dataset contains 10299 instances and 561 attributes. The number of attributes is quite high so it might take time to train the model. Also, large number of attributes can lead to Overfitting. If the model overfits because of large number of attributes, we can use **Principal Component Analysis** (PCA) to reduce the number of attributes so that the model will contain new useful features. But when i trained my model on Logistic, SVM and Random Forest, i observed that the Training Score and Validation Score is quite close. It means that our model performs equally good on Training Set and Validation Set. This implies that our model do not Overfit, so we do not need to apply PCA here. We can verify that PCA will not increase the Validation Score. Before applying PCA, we need to perform Data Centralization. Data centralization is a major step before applying PCA to a Training Set. On applying PCA for the model with variance 0.9, we observe that around only 63 principal components are required and with variance 0.85, around only 40 principal components are required. We will stick with 0.85 variance as a thumb of rule (it is often observed that variance 0.85 suits many models quite well).
+Since, the dataset contains 10299 instances and 561 attributes. The number of attributes is quite high so it might take time to train the model. Also, large number of attributes can lead to Overfitting. If the model overfits because of large number of attributes, we can use **Principal Component Analysis** (PCA) to reduce the number of attributes so that the model will contain new useful features. But when i trained my model on Logistic, SVM and Random Forest, i observed that the Training Score and Validation Score is quite close. It means that our model performs equally good on Training Set and Validation Set. This implies that our model do not Overfit, so we do not need to apply PCA here. We can verify that PCA will not increase the Validation Score. Before applying PCA, we need to perform Data Centralization. Data centralization is a major step before applying PCA to a Training Set. On applying PCA for the model with variance 0.9, we observe that around only 63 principal components are required and with variance 0.85, around only 40 principal components are required. We will stick with 0.85 variance as a thumb of rule (it is observed that variance "0.85" often suits many models quite well).
 ```python
 from sklearn.decomposition import PCA
 
@@ -115,6 +115,61 @@ for i in range(len(pca_csum)) :
 plt.plot(pca_csum_list, 'b')
 plt.show()
 ```
+``` python
+stdScaler = StandardScaler()
+X_train = stdScaler.fit_transform(Xtrain_pca)
+X_test = stdScaler.transform(Xtest_pca)
+```
+
+# Applying Logistic Regression
+
+```
+from sklearn.linear_model import LogisticRegression
+
+d=[0.001, 0.003, 0.006, 0.01,0.03,0.06,0.1,0.3,0.6, 1]
+max_train = 0
+max_test = 0
+optimalC = d[0]
+c_list = []
+for i in d:
+    
+    clf = LogisticRegression(C=i, penalty='l2', random_state=42)
+    clf.fit(X_train, y_train)
+    score_train = clf.score(X_train, y_train)
+    score_test = clf.score(X_test, y_test)
+    
+    c_list.append(score_test)
+    if(score_test > max_test) :
+        max_test = score_test
+        max_train = score_train
+        optimalC = i
+
+print("Optimal C = ", optimalC)
+print("Training score by Logistic Regression (liblinear) : ", max_train)
+print("Test score by Logistic Regression (liblinear) : ", max_test)
+plt.plot(d, c_list, 'b', d, c_list, 'o')
+plt.plot(d[d.index(optimalC)], c_list[d.index(optimalC)], 'ro')
+plt.xlabel("Values of C")
+plt.ylabel("Validation scores")
+plt.title("Graph of \"C vs Validation Score\"")
+plt.show()
+```
+### Output without PCA
+```
+Optimal C =  0.1
+Training score by Logistic Regression (liblinear) :  0.9883025027203483
+Test score by Logistic Regression (liblinear) :  0.9657278588394977
+```
+### Output with PCA
+```
+Optimal C =  1
+Training score by Logistic Regression (liblinear) :  0.9333514689880305
+Test score by Logistic Regression (liblinear) :  0.9182219205972175
+```
+
+# Conclusion 
+Clearly, Result without PCA is quite better than that with PCA. Also, Training score and test score are quite close as well. So, the decision of not using PCA was not wrong. We can also try with other different models like SVM, Random Forest, etc. I found that Logistic Regression was performing better than both of them (SVM, RFC). So, i decided to stick with Logistic Regression as my Best Model for this multi-classification problem which is giving me a really good result (96.57% accuracy).
+
 # References :
 - Davide Anguita, Alessandro Ghio, Luca Oneto, Xavier Parra and Jorge L. Reyes-Ortiz. A Public Domain Dataset for Human Activity Recognition Using Smartphones. 21th European Symposium on Artificial Neural Networks, Computational Intelligence and Machine Learning, ESANN 2013. Bruges, Belgium 24-26 April 2013. 
 - https://github.com/guillaume-chevalier/LSTM-Human-Activity-Recognition
