@@ -8,64 +8,24 @@
 - STANDING,
 - LAYING.
 
-# DESCRIPTION OF DATASET
+# Problem Statement :
 #### Human Activity Recognition Using Smartphones Dataset - Version 1.0
 
-The experiments have been carried out with a group of 30 volunteers within an age bracket of 19-48 years. Each person performed six activities (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING) wearing a smartphone (Samsung Galaxy S II) on the waist. Using its embedded accelerometer and gyroscope, we captured 3-axial linear acceleration and 3-axial angular velocity at a constant rate of 50Hz. The experiments have been video-recorded to label the data manually. The obtained dataset has been randomly partitioned into two sets, where 70% of the volunteers was selected for generating the training data and 30% the test data. 
-
-The sensor signals (accelerometer and gyroscope) were pre-processed by applying noise filters and then sampled in fixed-width sliding windows of 2.56 sec and 50% overlap (128 readings/window). The sensor acceleration signal, which has gravitational and body motion components, was separated using a Butterworth low-pass filter into body acceleration and gravity. The gravitational force is assumed to have only low frequency components, therefore a filter with 0.3 Hz cutoff frequency was used. From each window, a vector of features was obtained by calculating variables from the time and frequency domain. See 'features_info.txt' for more details. 
-
-For each record it is provided:
-======================================
-
-- Triaxial acceleration from the accelerometer (total acceleration) and the estimated body acceleration.
-- Triaxial Angular velocity from the gyroscope. 
-- A 561-feature vector with time and frequency domain variables. 
-- Its activity label. 
-- An identifier of the subject who carried out the experiment.
-
-The dataset includes the following files:
-=========================================
-
-- 'README.txt'
-
-- 'features_info.txt': Shows information about the variables used on the feature vector.
-
-- 'features.txt': List of all features.
-
-- 'activity_labels.txt': Links the class labels with their activity name.
-
-- 'train/X_train.txt': Training set.
-
-- 'train/y_train.txt': Training labels.
-
-- 'test/X_test.txt': Test set.
-
-- 'test/y_test.txt': Test labels.
-
-The following files are available for the train and test data. Their descriptions are equivalent. 
-
-- 'train/subject_train.txt': Each row identifies the subject who performed the activity for each window sample. Its range is from 1 to 30. 
-
-- 'train/Inertial Signals/total_acc_x_train.txt': The acceleration signal from the smartphone accelerometer X axis in standard gravity units 'g'. Every row shows a 128 element vector. The same description applies for the 'total_acc_x_train.txt' and 'total_acc_z_train.txt' files for the Y and Z axis. 
-
-- 'train/Inertial Signals/body_acc_x_train.txt': The body acceleration signal obtained by subtracting the gravity from the total acceleration. 
-
-- 'train/Inertial Signals/body_gyro_x_train.txt': The angular velocity vector measured by the gyroscope for each window sample. The units are radians/second. 
-
-Notes: 
-======
-- Features are normalized and bounded within [-1,1].
-- Each feature vector is a row on the text file.
-- The units used for the accelerations (total and body) are 'g's (gravity of earth -> 9.80665 m/seg2).
-- The gyroscope units are rad/seg.
+The experiments have been carried out with a group of 30 volunteers within an age bracket of 19-48 years. Each person performed six activities (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING) wearing a smartphone (Samsung Galaxy S II) on the waist. Using its embedded accelerometer and gyroscope, it has captured 3-axial linear acceleration and 3-axial angular velocity at a constant rate of 50Hz. The experiments have been video-recorded to label the data manually. The obtained dataset has been randomly partitioned into two sets, where 70% of the volunteers was selected for generating the training data and 30% the test data. Propose a good multi class classification method.
 
 Approach :
 ===========
-I have used three classical algorithms to perform multi-classification namely
+I have used three classification algorithms to perform multi-classification namely
 - Logistic Regression
 - Support Vector Classifier
 - Random Forest Classifier
+
+I have chosen Logistic Regression because on analyzing features, i observed that the data may be linearly separable and Linear Regression works really well when data is linearly separable.
+
+I have chosen Support Vector Classifier with ‘rbf’ kernel and ‘linear’ kernel and Validation and Test score were quite similar. It strengthened my belief that the data is linearly separable because ‘rbf’ kernel is a non-linear classifier but can also classify linear separable data as well and linear classifier specifically classify linearly separable data. 
+
+I have chosen Random Forest Classifier because of its bagging and boosting features. But random forest could not perform well as compared to SVM and Logistic Regression. The potential reason for this could be “Overfitting” as we can see that difference between training score and validation score is quite significant.
+
 
 Importing Libraries :
 ========
@@ -80,29 +40,28 @@ PRE-PROCESSING :
 =========
 It is a good practice to perform feature scaling and mean normalization before applying models like Logistic Regression, SVM, etc. 
 ```python
-df_train = pd.read_csv('train/X_train.txt', delim_whitespace=True, header=None)
-df_test = pd.read_csv('test/X_test.txt', delim_whitespace=True, header=None)
+df_train = pd.read_csv('../input/X_train.txt', delim_whitespace=True, header=None)
+df_test = pd.read_csv('../input/X_test.txt', delim_whitespace=True, header=None)
 
-combine = pd.concat([df_train, df_test])
+y = np.array(pd.read_csv('../input/y_train.txt', header=None)).ravel()
+y_test = np.array(pd.read_csv('../input/y_test.txt', header=None)).ravel()
 
-y_train = np.array(pd.read_csv('train/y_train.txt', header=None)).ravel()
-y_test = np.array(pd.read_csv('test/y_test.txt', header=None)).ravel()
-df_train.shape, df_test.shape, combine.shape
-
+from sklearn.preprocessing import StandardScaler
 stdScaler = StandardScaler()
-X = stdScaler.fit_transform(combine.values)
-X_train = stdScaler.fit_transform(df_train.values)
-X_test = stdScaler.fit_transform(df_test.values)
+X = stdScaler.fit_transform(df_train.values)
+X_test = stdScaler.transform(df_test.values)
 ```
 Should we use PCA ?
 ====================
-Since, the dataset contains 10299 instances and 561 attributes. The number of attributes is quite high so it might take time to train the model. Also, large number of attributes can lead to Overfitting. If the model overfits because of large number of attributes, we can use **Principal Component Analysis** (PCA) to reduce the number of attributes so that the model will contain new useful features. But when i trained my model on Logistic, SVM and Random Forest, i observed that the Training Score and Test Score is quite close. It means that our model performs equally good on Training Set and Test Set. This implies that our model do not Overfit, so we do not need to apply PCA here. We can verify that PCA will not increase the Test Score. Before applying PCA, we need to perform Data Centralization. Data centralization is a major step before applying PCA to a Training Set. On applying PCA for the model with variance 0.9, we observe that around only 63 principal components are required and with variance 0.85, around only 40 principal components are required. We will stick with 0.85 variance as a thumb of rule (it is observed that variance "0.85" often suits many models quite well).
+Since, the dataset contains 10299 instances and 561 attributes. The number of attributes is quite high so it might take time to train the model. Also, large number of attributes can lead to Overfitting. If the model overfits because of large number of attributes, we can use Principal Component Analysis (PCA) to reduce the number of attributes so that the model will contain new useful features. On applying PCA in the given dataset with variance 0.9, we observe that around only 63 principal components are required and with variance 0.85, around only 40 principal components are required. But when i trained my model on Logistic, SVM and Random Forest, i observed that the Training Score and Validation Score is not improving, rather it is decreasing. This may be happening because when we are applying PCA with variance 0.85, we may be losing some useful feature and because of that our model is not getting properly trained with PCA. So, in this case, it is better to train the model without PCA so that our model will be properly trained with all the useful features.
+
+We can verify that PCA will not increase the Test Score. Before applying PCA, we need to perform Data Centralization. Data centralization is a major step before applying PCA to a Data Set.  Below is a sample PCA transformation code and sample output we observed after applying Logistic Regression to the model with PCA and without PCA. The performance of the model without PCA is way better than that with PCA. 
 ```python
 from sklearn.decomposition import PCA
 
 pca = PCA(n_components=0.85, random_state=42) 
-pca = pca.fit(X_train)
-Xtrain_pca = pca.transform(X_train)
+pca = pca.fit(X)
+Xtrain_pca = pca.transform(X)
 Xtest_pca = pca.transform(X_test)
 
 ```
@@ -118,125 +77,333 @@ plt.show()
 ![PCA variance curve](pca_variance.png)
 ``` python
 stdScaler = StandardScaler()
-X_train = stdScaler.fit_transform(Xtrain_pca)
+X = stdScaler.fit_transform(Xtrain_pca)
 X_test = stdScaler.transform(Xtest_pca)
 ```
+# Using Cross-validation set
+Learning the parameters of a prediction function and testing it on the same data is a methodological mistake: a model that would just repeat the labels of the samples that it has just seen would have a perfect score but would fail to predict anything useful on yet-unseen data. This situation is called **overfitting**. To avoid it, it is common practice when performing a (supervised) machine learning experiment to hold out part of the available data as a Validation Set : X_val and y_val.
 
-# Applying Logistic Regression
-Here, we are using Logistic Regression with "liblinear" solver. LIBLINEAR is an open source library for large-scale linear classification. Logistic Regression is performing really great with 96.87% accuracy.
+# Model Selection
+Here, i am using k-fold technique to split the given Dataset into k-different folds using one fold as Validation Set and rest as Training Set. We have to do this with every fold (all k-folds), that is, keep one fold as Validation Set and rest as Training Set.  In each split we will train our model and estimate the correct model parameters by analyzing the accuracy in Validation Set for each parameter in different splits of Dataset. The parameters which performs the best will be chosen for the model predicting the Test Data.  
+
+# Finding best parameters
+To find best parameters for a model, we will be doing k-split to the Dataset and for each parameter, we will be  calculating its performance on each split and we will take the mean of validation scores obtained in each split and we will measure that score with the best score we have observed so far and if this parameter is better than the best parameter, then mark this parameter as the best parameter. Then, after finding the best parameter, we will find the split which gives best Validation Score for the model with this best parameter. And we will use this model to predict the test dataset.
+
+# Import K-fold from sklearn library
+```python
+k = 5
+kf = StratifiedKFold(n_splits=k, random_state=42)
 ```
+# Applying Logistic Regression
+Here, we are using Logistic Regression with "liblinear" solver. LIBLINEAR is an open source library for large-scale linear classification. In our model, Logistic Regression is performing really great with around 96% accuracy in Test Set.
+``` python
 from sklearn.linear_model import LogisticRegression
 
-d=[0.001, 0.003, 0.006, 0.01,0.03,0.06,0.1,0.3,0.6, 1]
+d=[0.001, 0.01, 0.1,0.3, 0.6, 1, 10, 100]
 max_train = 0
-max_test = 0
+max_val = 0
 optimalC = d[0]
 c_list = []
+
 for i in d:
-    
-    clf = LogisticRegression(C=i, penalty='l2', random_state=42)
-    clf.fit(X_train, y_train)
-    score_train = clf.score(X_train, y_train)
-    score_test = clf.score(X_test, y_test)
-    
-    c_list.append(score_test)
-    if(score_test > max_test) :
-        max_test = score_test
+    score_val = 0
+    score_train = 0
+    for train_index, val_index in kf.split(X, y) :
+        
+        X_train, X_val = X[train_index], X[val_index]
+        y_train, y_val = y[train_index], y[val_index]
+        
+        clf = LogisticRegression(C=i, penalty='l2', random_state=42)
+        clf.fit(X_train, y_train)
+        score_train += clf.score(X_train, y_train)
+        score_val += clf.score(X_val, y_val)
+
+    score_train /= k
+    score_val /= k
+    print(i, score_train)
+    print(i, score_val)
+    print('-'*25)
+    c_list.append(score_val)
+    if(score_val > max_val) :
+        max_val = score_val
         max_train = score_train
         optimalC = i
-
 print("Optimal C = ", optimalC)
 print("Training score by Logistic Regression (liblinear) : ", max_train)
-print("Test score by Logistic Regression (liblinear) : ", max_test)
-plt.plot(d, c_list, 'b', d, c_list, 'o')
-plt.plot(d[d.index(optimalC)], c_list[d.index(optimalC)], 'ro')
+print("Validation score by Logistic Regression (liblinear) : ", max_val)
+plt.plot(d, c_list, 'bo-')
+plt.plot(optimalC, c_list[d.index(optimalC)], 'ro')
 plt.xlabel("Values of C")
-plt.ylabel("Test scores")
-plt.title("Graph of \"C vs Test Score\"")
+plt.ylabel("Validation scores")
+plt.title("Graph of \"C vs Validation Score\" (Logistic)")
 plt.show()
 ```
-### Graph of C vs Test Score (without PCA)
-![C_vs_test](c_vs_test.png)
-### Output of Logistic Regression without PCA
-```
-Optimal C =  0.1
-Training score by Logistic Regression (liblinear) :  0.9883025027203483
-Test score by Logistic Regression (liblinear) :  0.9657278588394977
-```
-### Output of Logistic Regression with PCA
 ```
 Optimal C =  1
-Training score by Logistic Regression (liblinear) :  0.9333514689880305
-Test score by Logistic Regression (liblinear) :  0.9182219205972175
+Training score by Logistic Regression (liblinear) :  0.9954435931849224
+Validation score by Logistic Regression (liblinear) :  0.9392274925705115
 ```
-# Observation 
-Clearly, Result without PCA is quite better than that with PCA. Also, Training score and test score are quite close as well. So, the decision of not using PCA was not wrong. I also tried with other different models like SVM, Random Forest, etc. with PCA and without PCA and each case, not using PCA was the optimal choice. So, from now on, we will not consider the case of using PCA.
+![c_vs_validation_log](c_vs_validation_log.png)
+
+Finding split with best validation score for parameter C = optimalC and using the model with best Validation score and parameter optimalC to predict the test dataset 
+```python
+max_val = 0
+val_list = []
+best_log = None
+y_pred = []
+best_yval = []
+
+for train_index, val_index in kf.split(X, y) :
+    X_train, X_val = X[train_index], X[val_index]
+    y_train, y_val = y[train_index], y[val_index]
+    log_clf = LogisticRegression(C=optimalC, random_state=42)
+    log_clf.fit(X_train, y_train)
+    
+    train_score = log_clf.score(X_train, y_train)
+    val_score = log_clf.score(X_val, y_val)
+    val_list.append(val_score)
+    if(max_val < val_score) :
+        max_val = val_score
+        best_log = log_clf
+        y_pred = log_clf.predict(X_val)
+        best_yval = y_val
+print("Max validation score : ", max_val)
+print("val_list : ", sorted(val_list))
+
+test_score = best_log.score(X_test, y_test)
+print("Test Score by Logistic Regression", test_score)
+```
+### Test Score by Logistic Regression
+```
+Max validation score :  0.9693669162695712
+val_list :  [0.8966689326988443, 0.9199457259158752, 0.9455782312925171, 0.9645776566757494, 0.9693669162695712]
+Test Score by Logistic Regression 0.9623345775364778
+```
+# Confusion Matrix analysis for Logistic Regression
+We can see that recall and precision both are really good for Logistic Regression. Its precision is not as good as that of SVM but overall F1-score is more. We can see that Logistic Regression finds difficult to predict WALKING DOWNSTAIRS precisely. For WALKING DOWNSTAIRS, it has comparatively bad recall and bad precision.
+F1-score : 0.969 		(average parameter = ‘micro’)
+
+```python
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score
+display(confusion_matrix(best_yval, y_pred))
+display(f1_score(best_yval, y_pred, average='micro'))
+```
+
  # Applying Support Vector Classifier (SVC)
- SVC is a classical Classification Algorithm. It is applied in many classification problem and it performs quite well in both training set and test set. In our case, it is performing really good but still overfitting to some extend. When i tried to reduce the overfitting by choosing small value of C, the test score also went down.
+ SVC is a classical Classification Algorithm. It is applied in many classification problem. In our case, it is performing really good giving  around 95 % accuracy in Test Set, but still overfitting to some extend. When i tried to reduce the overfitting by choosing small value of C, the Test score also went down.
  ```python
- from sklearn.svm import SVC
+from sklearn.svm import SVC
 
 max_train = 0
-max_test = 0
-svc_list = [1] + [i for i in range(5, 51, 5)]
+max_val = 0
+svc_list = [1] + [i for i in range(5, 31, 5)]
 optimalC = svc_list[0]
+c_vs_validation = [] 
 for i in svc_list:
     
-    clf = SVC(C=i, kernel='rbf', random_state=42)
-    clf.fit(X_train, y_train)
-    score_train = clf.score(X_train, y_train)
-    score_test = clf.score(X_test, y_test)
+    score_train = 0
+    score_val = 0
+    for train_index, val_index in kf.split(X, y) :
+        X_train, X_val = X[train_index], X[val_index]
+        y_train, y_val = y[train_index], y[val_index]
+        
+        clf = SVC(C=i, kernel='rbf', random_state=42)
+        clf.fit(X_train, y_train)
+        score_train += clf.score(X_train, y_train)
+        score_val += clf.score(X_val, y_val)
+
+    score_train /= k
+    score_val /= k
     
-    if(score_test > max_test) :
-        max_test = score_test
+    print(i, score_train)
+    print(i, score_val)
+    print('-'*25)
+    c_vs_validation.append(score_val)
+
+    if(score_val > max_val) :
+        max_val = score_val
         max_train = score_train
         optimalC = i
 
 print("Optimal C = ", optimalC)
 print("Training Score by SVM : ", max_train)
-print("Test Score by SVM : ", max_test)
+print("Validation Score by SVM : ", max_val)
+plt.plot(svc_list, c_vs_validation, 'bo-')
+plt.plot(optimalC, c_vs_validation[svc_list.index(optimalC)], 'ro')
+plt.xlabel("Values of C")
+plt.ylabel("Validation scores")
+plt.title("Graph of \"C vs Validation Score\" (SVM)")
+plt.show()
  ```
  ### Output of SVC
  ```
-Optimal C =  40
-Training Score by SVM :  1.0
-Test Score by SVM :  0.9606379368849678
+Optimal C =  5
+Training Score by SVM :  0.9968375555582327
+Validation Score by SVM :  0.9321427586477663
  ```
- # Applying Random Forest Classifier
-Random Forest Classifier generally performs really well but in this case, it is overfitting as we can see that training score and test score have significant difference.
+ ![c_vs_validation_svm](c_vs_validation_svm.png)
+ 
+ ```python
+max_val = 0
+val_list = []
+best_clf = None
+best_yval = []
+y_pred = []
+
+for train_index, val_index in kf.split(X, y) :
+    X_train, X_val = X[train_index], X[val_index]
+    y_train, y_val = y[train_index], y[val_index]
+    clf = SVC(C=optimalC, random_state=42)
+    clf.fit(X_train, y_train)
+    
+    train_score = clf.score(X_train, y_train)
+    val_score = clf.score(X_val, y_val)
+    val_list.append(val_score)
+    if(max_val < val_score) :
+        max_val = val_score
+        best_clf = clf
+        best_yval = y_val
+        y_pred = best_clf.predict(X_val)
+
+print("Max validation score : ", max_val)
+print("val_list : ", sorted(val_list))
+
+test_score = best_clf.score(X_test, y_test)
+print("Test Score by SVM : ", test_score)
+ ```
+ ### Test Score by SVM
+ ```
+Max validation score :  0.9584468664850136
+val_list :  [0.9082256968048946, 0.9226594301221167, 0.9312457454050375, 0.9401360544217687, 0.9584468664850136]
+Test Score by SVM :  0.9521547336274178
+ ```
+ # Confusion Matrix analysis for SVM
+ Its precision is really good but recall for STANDING and SITTING is not that good. Because of that, it is performing slightly less better than Logistic Regression.
+F1-score : 0.958		(average parameter = ‘micro’)
+
+```python
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score
+display(confusion_matrix(best_yval, y_pred))
+display(f1_score(best_yval, y_pred, average='micro'))
+```
+```
+array([[245,   0,   0,   0,   0,   0],
+       [  0, 214,   0,   0,   0,   0],
+       [  1,   0, 196,   0,   0,   0],
+       [  0,   0,   0, 223,  34,   0],
+       [  0,   0,   0,  24, 250,   0],
+       [  0,   0,   0,   0,   2, 279]])
+0.9584468664850136
+```
+# Applying Random Forest Classifier
+Random Forest Classifier generally performs really well but in this case, it is overfitting as we can see that training score and validation score have significant difference.
  ```python
 from sklearn.ensemble import RandomForestClassifier
+
 max_train = 0
-max_test = 0
+max_val = 0
 optimalDepth = 7
-optimalEstimator = 10
+optimalEstimator = 5
 for depth in [7, 8, 9] :
     for estimator in range(5, 51, 5) :
-        model_rfc = RandomForestClassifier(n_estimators=estimator, max_depth=depth, random_state=42)
-        model_rfc.fit(X_train, y_train)
-        score_train = model_rfc.score(X_train, y_train)
-        score_test = model_rfc.score(X_test, y_test)
-        
-        if(max_test < score_test) :
-            max_test = score_test
+        score_train = 0
+        score_val = 0
+        for train_index, val_index in kf.split(X, y) :
+            X_train, X_val = X[train_index], X[val_index]
+            y_train, y_val = y[train_index], y[val_index]
+            model_rfc = RandomForestClassifier(n_estimators=estimator, max_depth=depth, random_state=42)
+            model_rfc.fit(X_train, y_train)
+            score_train += model_rfc.score(X_train, y_train)
+            score_val += model_rfc.score(X_val, y_val)
+        score_train /= k
+        score_val /= k
+        print("Training Score for  ", depth, estimator, " : ", score_train)
+        print("Validation Score for ", depth, estimator," : ", score_val)
+        if(max_val < score_val) :
+            max_val = score_val
             max_train = score_train
             optimalDepth = depth
             optimalEstimator = estimator
+            print("depth, estimator = ", depth, estimator)
             
 print("Optimal Depth = ", optimalDepth)
 print("Optimal Number of Estimators = ", optimalEstimator)
-print("Training Score by Random Forest : ", max_train)
-print("Test Score by Random Forest : ", max_test)
+print("Training Score by Random Forest Classifier : ", max_train)
+print("Validation Score by Random Forest Classifier : ", max_val)
  ```
-### Output of RFC
+### Output
 ```
-Optimal Depth =  8
-Optimal Number of Estimators =  50
-Training Score by Random Forest :  0.9868063112078346
-Test Score by Random Forest :  0.9205972175093315
+Optimal Depth =  7
+Optimal Number of Estimators =  30
+Training Score by Random Forest Classifier :  0.9814004021781002
+Validation Score by Random Forest Classifier :  0.920718776577176
 ```
+```python
+max_val = 0
+val_list = []
+best_rfc = None
+best_yval = []
+y_pred = []
+for train_index, val_index in kf.split(X, y) :
+    X_train, X_val = X[train_index], X[val_index]
+    y_train, y_val = y[train_index], y[val_index]
+    model_rfc = RandomForestClassifier(n_estimators=optimalEstimator, max_depth=optimalDepth, random_state=42)
+    model_rfc.fit(X_train, y_train)
+    train_score = model_rfc.score(X_train, y_train)
+    val_score = model_rfc.score(X_val, y_val)
+    val_list.append(val_score)
+    if(max_val < val_score) :
+        max_val = val_score
+        best_rfc = model_rfc
+        y_pred = model_rfc.predict(X_val)
+        best_yval = y_val
+print("Max validation score : ", max_val)
+print("val_list : ", sorted(val_list))
+
+test_score = best_rfc.score(X_test, y_test)
+print("Test Score by Random Forest Classifier : ", test_score)
+```
+### Test Score by RFC
+```
+Max validation score :  0.9387338325391422
+val_list :  [0.902107409925221, 0.903663500678426, 0.9285714285714286, 0.9305177111716622, 0.9387338325391422]
+Test Score by Random Forest Classifier :  0.9114353579911775
+```
+ # Confusion Matrix analysis for Random Forest Classifier
+ We can see that RFC is not able to give good precision or good recall. As we can see from the table below, the precision for WALKING DOWNSTAIRS is not good as it is getting confused with WALKING UPSTAIRS and WALKING DOWNSTAIRS. Recall for WALKING UPSTAIRS is also not good because of the confusion between WALKING UPSTAIRS and WALKING DOWNSTAIRS.
+F1-score : 0.938		(average parameter = ‘micro’)
+```python
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score
+display(confusion_matrix(best_yval, y_pred))
+display(f1_score(best_yval, y_pred, average='micro'))
+```
+```
+array([[238,   3,   4,   0,   0,   0],
+       [  2, 202,   8,   0,   2,   0],
+       [  5,  40, 152,   0,   0,   0],
+       [  0,   0,   0, 246,  11,   0],
+       [  0,   0,   0,  15, 260,   0],
+       [  0,   0,   0,   0,   0, 281]])
+0.9387338325391422
+```
+# Performance Measure of Models 
+|                      |Logistic Regression | SVM        |Random Forest Classifier|
+| -------------        |:-------------:     | :---------:|:-------------:         |
+| **Training Score**   |   0.995            | 0.996      | 0.981                  |
+| **Validation Score** |   0.939            | 0.932      | 0.920                  |
+| **Test Score**       |   0.962            | 0.952      | 0.911                  |
+
+# Challenges faced
+- **Model Selection** - How to find the optimal parameters for the model
+- **Using PCA** - Should PCA be used or not?
+- **Training Time** - Since, the dataset contains 561 attributes and 10299 instances, training the model takes the time.
+- **How to split Dataset** - Which technique to use for splitting the data set ? 
+
 # Conclusion
-We can see that Logistic Regression is performing better than both of them (SVC, RFC). So, i would stick with Logistic Regression for this multi-classification problem which is giving me a really good satisfactory result (96.57% accuracy).
+I have trained three models for Human-Activity Classification Dataset and observed their performances. As we can see that out of three, Logistic Regression and SVM are performing really well and Logistic Regression is performing overall better as it has better Validation Score and also better F1-score. Also, from the experience Logistic Regression gives the similar score in Test Dataset as Validation Dataset. So considering Reliability and Performance of Logistic Regression, i will stick with Logistic Regression as my model for predicting the Test Dataset.
 
 # References :
 - Davide Anguita, Alessandro Ghio, Luca Oneto, Xavier Parra and Jorge L. Reyes-Ortiz. A Public Domain Dataset for Human Activity Recognition Using Smartphones. 21th European Symposium on Artificial Neural Networks, Computational Intelligence and Machine Learning, ESANN 2013. Bruges, Belgium 24-26 April 2013. 
