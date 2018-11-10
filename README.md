@@ -138,6 +138,7 @@ plt.ylabel("Validation scores")
 plt.title("Graph of \"C vs Validation Score\" (Logistic)")
 plt.show()
 ```
+ ### Output
 ```
 Optimal C =  1
 Training score by Logistic Regression (liblinear) :  0.9954435931849224
@@ -189,7 +190,16 @@ from sklearn.metrics import f1_score
 display(confusion_matrix(best_yval, y_pred))
 display(f1_score(best_yval, y_pred, average='micro'))
 ```
-
+ ### Output
+ ```
+ array([[236,   0,   8,   0,   1,   0],
+       [  0, 209,   5,   0,   0,   0],
+       [  6,   8, 180,   3,   0,   0],
+       [  0,   0,   0, 257,   0,   0],
+       [  0,   0,   0,  14, 261,   0],
+       [  0,   0,   0,   0,   0, 281]])
+0.9693669162695712
+ ```
  # Applying Support Vector Classifier (SVC)
  SVC is a classical Classification Algorithm. It is applied in many classification problem. In our case, it is performing really good giving  around 95 % accuracy in Test Set, but still overfitting to some extend. When i tried to reduce the overfitting by choosing small value of C, the Test score also went down.
  ```python
@@ -236,7 +246,7 @@ plt.ylabel("Validation scores")
 plt.title("Graph of \"C vs Validation Score\" (SVM)")
 plt.show()
  ```
- ### Output of SVC
+ ### Output
  ```
 Optimal C =  5
 Training Score by SVM :  0.9968375555582327
@@ -288,6 +298,7 @@ from sklearn.metrics import f1_score
 display(confusion_matrix(best_yval, y_pred))
 display(f1_score(best_yval, y_pred, average='micro'))
 ```
+ ### Output
 ```
 array([[245,   0,   0,   0,   0,   0],
        [  0, 214,   0,   0,   0,   0],
@@ -380,6 +391,7 @@ from sklearn.metrics import f1_score
 display(confusion_matrix(best_yval, y_pred))
 display(f1_score(best_yval, y_pred, average='micro'))
 ```
+ ### Output
 ```
 array([[238,   3,   4,   0,   0,   0],
        [  2, 202,   8,   0,   2,   0],
@@ -393,7 +405,7 @@ array([[238,   3,   4,   0,   0,   0],
 |                      |Logistic Regression | SVM        |Random Forest Classifier|
 | -------------        |:-------------:     | :---------:|:-------------:         |
 | **Training Score**   |   0.995            | 0.996      | 0.981                  |
-| **Validation Score** |   0.939            | 0.932      | 0.920                  |
+| **Cross-Validation Score** |   0.939            | 0.932      | 0.920                  |
 | **Test Score**       |   0.962            | 0.952      | 0.911                  |
 
 # Challenges faced
